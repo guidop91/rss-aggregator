@@ -34,6 +34,8 @@ func main() {
 	}
 
 	subRouter := chi.NewRouter()
+	subRouter.Get("/healthz", handleReadiness)
+	subRouter.Get("/err", handleError)
 	router.Mount("/v1", subRouter)
 
 	log.Printf("Server running on port %v\n", portString)
