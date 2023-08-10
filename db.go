@@ -12,7 +12,7 @@ import (
 
 func dbConnect() *database.Queries {
 	postgresConnString := os.Getenv("DB_URL")
-	variableMissing(postgresConnString)
+	invariant(postgresConnString)
 
 	db, errDb := sql.Open("postgres", postgresConnString)
 	if errDb != nil {

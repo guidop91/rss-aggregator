@@ -16,42 +16,54 @@ type apiConfig struct {
 }
 
 func main() {
+	// Load environment secrets from .env file
 	godotenv.Load()
 
 	// Load required env variables
 	portString := os.Getenv("PORT")
-	variableMissing(portString)
+	invariant(portString)
 
+	// Create api config struct
 	apiCfg := apiConfig{
 		DB: dbConnect(),
 	}
 
+	// Create router
 	router := chi.NewRouter()
 
-	router.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://*", "https://*"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"*"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: false,
-		MaxAge:           300,
-	}))
+	// Assign CORS options middleware
+	router.Use(getCorsOptions())
 
+	// Create subrouter with route handlers
+	subRouter := chi.NewRouter()
+	subRouter.Get("/healthz", handleReadiness)
+	subRouter.Get("/err", handleError)
+	subRouter.Get("/users", apiCfg.handleGetUser)
+	subRouter.Post("/users", apiCfg.handleCreateUser)
+
+	// Mount subrouter to main router
+	router.Mount("/v1", subRouter)
+
+	// Create HTTP server with router as handler
 	srv := &http.Server{
 		Handler: router,
 		Addr:    ":" + portString,
 	}
-
-	subRouter := chi.NewRouter()
-	subRouter.Get("/healthz", handleReadiness)
-	subRouter.Get("/err", handleError)
-	subRouter.Post("/users", apiCfg.handleCreateUser)
-
-	router.Mount("/v1", subRouter)
 
 	log.Printf("Server running on port %v\n", portString)
 	err := srv.ListenAndServe()
 	if err != nil {
 		log.Fatal("Fail to run server", err)
 	}
+}
+
+func getCorsOptions() func(http.Handler) http.Handler {
+	return cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://*", "https://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	})
 }
