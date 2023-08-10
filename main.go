@@ -7,14 +7,23 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
+	"github.com/guidop91/rss-aggregator/internal/database"
 	"github.com/joho/godotenv"
 )
 
+type apiConfig struct {
+	DB *database.Queries
+}
+
 func main() {
 	godotenv.Load()
+
+	// Load required env variables
 	portString := os.Getenv("PORT")
-	if portString == "" {
-		log.Fatal("PORT env variable not found")
+	variableMissing(portString)
+
+	apiCfg := apiConfig{
+		DB: dbConnect(),
 	}
 
 	router := chi.NewRouter()
@@ -36,6 +45,8 @@ func main() {
 	subRouter := chi.NewRouter()
 	subRouter.Get("/healthz", handleReadiness)
 	subRouter.Get("/err", handleError)
+	subRouter.Post("/users", apiCfg.handleCreateUser)
+
 	router.Mount("/v1", subRouter)
 
 	log.Printf("Server running on port %v\n", portString)
