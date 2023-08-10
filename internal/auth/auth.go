@@ -17,6 +17,10 @@ func GetApiKey(headers http.Header) (string, error) {
 	}
 
 	apiKeySlice := strings.Split(auth, " ")
+	if len(apiKeySlice) != 2 {
+		return "", errors.New("malformed Authorization header")
+	}
+
 	if apiKeySlice[0] != "ApiKey" {
 		return "", errors.New("malformed Authorization header")
 	}
