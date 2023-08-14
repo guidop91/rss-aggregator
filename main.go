@@ -41,6 +41,7 @@ func main() {
 	subRouter.Get("/users", apiCfg.middlewareAuth(apiCfg.handleGetUser))
 	subRouter.Post("/users", apiCfg.handleCreateUser)
 	subRouter.Post("/feeds", apiCfg.middlewareAuth(apiCfg.handleCreateFeed))
+	subRouter.Get("/feeds", apiCfg.handleGetFeeds)
 
 	// Mount subrouter to main router
 	router.Mount("/v1", subRouter)
