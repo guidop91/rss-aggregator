@@ -44,6 +44,7 @@ func main() {
 	subRouter.Get("/feeds", apiCfg.handleGetFeeds)
 	subRouter.Post("/feed_follows", apiCfg.middlewareAuth(apiCfg.handleCreateFollowFeed))
 	subRouter.Get("/feed_follows", apiCfg.middlewareAuth(apiCfg.handleGetFeedFollows))
+	subRouter.Delete("/feed_follows/{feed_id}", apiCfg.middlewareAuth(apiCfg.handleDeleteFeedFollow))
 
 	// Mount subrouter to main router
 	router.Mount("/v1", subRouter)
