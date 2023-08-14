@@ -38,7 +38,23 @@ func (apiCfg *apiConfig) handleCreateFeed(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	respondWithJSON(w, 200, databaseFeedToFeed(feed))
+	feedFollow, dbFeedFollowErr := apiCfg.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+		FeedID:    feed.ID,
+		UserID:    user.ID,
+	})
+	if dbFeedFollowErr != nil {
+		respondWithError(w, 400, fmt.Sprintf("Couldn't write to Database: %v", dbFeedFollowErr))
+		return
+	}
+
+	feedResponse := make(map[string]interface{})
+	feedResponse["feed"] = databaseFeedToFeed(feed)
+	feedResponse["feedFollow"] = databaseFeedFollowToFeedFollow(feedFollow)
+
+	respondWithJSON(w, 200, feedResponse)
 }
 
 func (apiCfg *apiConfig) handleGetFeeds(w http.ResponseWriter, r *http.Request) {

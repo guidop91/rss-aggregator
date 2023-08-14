@@ -36,14 +36,16 @@ func main() {
 
 	// Create subrouter with route handlers
 	subRouter := chi.NewRouter()
-	subRouter.Get("/healthz", handleReadiness)
 	subRouter.Get("/err", handleError)
-	subRouter.Get("/users", apiCfg.middlewareAuth(apiCfg.handleGetUser))
-	subRouter.Post("/users", apiCfg.handleCreateUser)
-	subRouter.Post("/feeds", apiCfg.middlewareAuth(apiCfg.handleCreateFeed))
-	subRouter.Get("/feeds", apiCfg.handleGetFeeds)
-	subRouter.Post("/feed_follows", apiCfg.middlewareAuth(apiCfg.handleCreateFollowFeed))
 	subRouter.Get("/feed_follows", apiCfg.middlewareAuth(apiCfg.handleGetFeedFollows))
+	subRouter.Get("/feeds", apiCfg.handleGetFeeds)
+	subRouter.Get("/healthz", handleReadiness)
+	subRouter.Get("/users", apiCfg.middlewareAuth(apiCfg.handleGetUser))
+
+	subRouter.Post("/feed_follows", apiCfg.middlewareAuth(apiCfg.handleCreateFollowFeed))
+	subRouter.Post("/feeds", apiCfg.middlewareAuth(apiCfg.handleCreateFeed))
+	subRouter.Post("/users", apiCfg.handleCreateUser)
+
 	subRouter.Delete("/feed_follows/{feed_id}", apiCfg.middlewareAuth(apiCfg.handleDeleteFeedFollow))
 
 	// Mount subrouter to main router
