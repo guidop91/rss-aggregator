@@ -10,12 +10,13 @@ import (
 	"github.com/guidop91/rss-aggregator/internal/database"
 )
 
-type createUserParams struct {
+type createFeedParameters struct {
 	Name string `json:"name"`
+	URL  string `json:"url"`
 }
 
-func (apiCfg *apiConfig) handleCreateUser(w http.ResponseWriter, r *http.Request) {
-	params := &createUserParams{}
+func (apiCfg *apiConfig) handleCreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
+	params := &createFeedParameters{}
 
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(params)
@@ -24,20 +25,18 @@ func (apiCfg *apiConfig) handleCreateUser(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	user, dbErr := apiCfg.DB.CreateUser(r.Context(), database.CreateUserParams{
-		Name:      params.Name,
+	feed, dbErr := apiCfg.DB.CreateFeed(r.Context(), database.CreateFeedParams{
+		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
-		ID:        uuid.New(),
+		Name:      params.Name,
+		Url:       params.URL,
+		UserID:    user.ID,
 	})
 	if dbErr != nil {
 		respondWithError(w, 400, fmt.Sprintf("Couldn't write to Database: %v", dbErr))
 		return
 	}
 
-	respondWithJSON(w, 200, databaseUserToUser(user))
-}
-
-func (apiCfg *apiConfig) handleGetUser(w http.ResponseWriter, r *http.Request, user database.User) {
-	respondWithJSON(w, 200, databaseUserToUser(user))
+	respondWithJSON(w, 200, databaseFeedToFeed(feed))
 }

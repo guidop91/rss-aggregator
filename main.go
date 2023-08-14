@@ -38,8 +38,9 @@ func main() {
 	subRouter := chi.NewRouter()
 	subRouter.Get("/healthz", handleReadiness)
 	subRouter.Get("/err", handleError)
-	subRouter.Get("/users", apiCfg.handleGetUser)
+	subRouter.Get("/users", apiCfg.middlewareAuth(apiCfg.handleGetUser))
 	subRouter.Post("/users", apiCfg.handleCreateUser)
+	subRouter.Post("/feeds", apiCfg.middlewareAuth(apiCfg.handleCreateFeed))
 
 	// Mount subrouter to main router
 	router.Mount("/v1", subRouter)
@@ -67,3 +68,5 @@ func getCorsOptions() func(http.Handler) http.Handler {
 		MaxAge:           300,
 	})
 }
+
+// 7:57:14
