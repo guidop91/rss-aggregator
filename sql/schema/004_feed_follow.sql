@@ -4,7 +4,8 @@ CREATE TABLE feed_follows (
   created_at timestamp NOT NULL,
   updated_at timestamp NOT NULL,
   feed_id UUID NOT NULL REFERENCES feeds(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE(user_id, feed_id)
 );
 
 -- +goose Down
