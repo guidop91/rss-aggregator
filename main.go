@@ -41,6 +41,7 @@ func main() {
 	subRouter.Get("/feeds", apiCfg.handleGetFeeds)
 	subRouter.Get("/healthz", handleReadiness)
 	subRouter.Get("/users", apiCfg.middlewareAuth(apiCfg.handleGetUser))
+	subRouter.Get("/feeds_to_fetch", apiCfg.handleGetNextFeeds)
 
 	subRouter.Post("/feed_follows", apiCfg.middlewareAuth(apiCfg.handleCreateFollowFeed))
 	subRouter.Post("/feeds", apiCfg.middlewareAuth(apiCfg.handleCreateFeed))

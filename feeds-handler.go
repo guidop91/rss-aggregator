@@ -71,3 +71,18 @@ func (apiCfg *apiConfig) handleGetFeeds(w http.ResponseWriter, r *http.Request) 
 
 	respondWithJSON(w, 200, parsedFeedList)
 }
+
+func (apiCfg *apiConfig) handleGetNextFeeds(w http.ResponseWriter, r *http.Request) {
+	feedList, dbErr := apiCfg.DB.GetNextFeedsToFetch(r.Context(), 10)
+	if dbErr != nil {
+		respondWithError(w, 400, fmt.Sprintf("Couldn't read from Database: %v", dbErr))
+		return
+	}
+
+	parsedFeedList := []Feed{}
+	for _, feedItem := range feedList {
+		parsedFeedList = append(parsedFeedList, databaseFeedToFeed(feedItem))
+	}
+
+	respondWithJSON(w, 200, parsedFeedList)
+}
