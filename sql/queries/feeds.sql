@@ -6,11 +6,16 @@ RETURNING *;
 -- name: GetFeeds :many
 SELECT * FROM feeds;
 
--- name: GetNextFeedsToFetch :many
+-- name: GetNextFeedsToFetch :one
 SELECT * FROM feeds 
 ORDER BY 
   (
     CASE WHEN last_fetched IS NULL THEN 1 ELSE 0 END
   ) DESC, 
   last_fetched ASC
-LIMIT $1;
+LIMIT 1;
+
+-- name: MarkFeedFetched :exec
+UPDATE feeds
+SET last_fetched = $2, updated_at = $3
+WHERE id = $1;

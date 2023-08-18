@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,6 +14,12 @@ import (
 type createFeedParameters struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`
+}
+
+type markFeedFetchedParameters struct {
+	ID          uuid.UUID `json:"id"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	LastFetched time.Time `json:"last_fetched"`
 }
 
 func (apiCfg *apiConfig) handleCreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
@@ -73,16 +80,28 @@ func (apiCfg *apiConfig) handleGetFeeds(w http.ResponseWriter, r *http.Request) 
 }
 
 func (apiCfg *apiConfig) handleGetNextFeeds(w http.ResponseWriter, r *http.Request) {
-	feedList, dbErr := apiCfg.DB.GetNextFeedsToFetch(r.Context(), 10)
+	feed, dbErr := apiCfg.DB.GetNextFeedsToFetch(r.Context())
 	if dbErr != nil {
 		respondWithError(w, 400, fmt.Sprintf("Couldn't read from Database: %v", dbErr))
 		return
 	}
 
-	parsedFeedList := []Feed{}
-	for _, feedItem := range feedList {
-		parsedFeedList = append(parsedFeedList, databaseFeedToFeed(feedItem))
+	respondWithJSON(w, 200, feed)
+}
+
+func (apiCfg *apiConfig) markFeedFetched(w http.ResponseWriter, r *http.Request, params *markFeedFetchedParameters) {
+	dbErr := apiCfg.DB.MarkFeedFetched(r.Context(), database.MarkFeedFetchedParams{
+		ID:        params.ID,
+		UpdatedAt: time.Now().UTC(),
+		LastFetched: sql.NullTime{
+			Time:  time.Now().UTC(),
+			Valid: true,
+		},
+	})
+	if dbErr != nil {
+		respondWithError(w, 400, fmt.Sprintf("Couldn't insert into Database: %v", dbErr))
+		return
 	}
 
-	respondWithJSON(w, 200, parsedFeedList)
+	respondWithJSON(w, 200, struct{}{})
 }
