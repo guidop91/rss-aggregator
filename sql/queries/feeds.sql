@@ -15,7 +15,8 @@ ORDER BY
   last_fetched ASC
 LIMIT 1;
 
--- name: MarkFeedFetched :exec
+-- name: MarkFeedFetched :one
 UPDATE feeds
-SET last_fetched = $2, updated_at = $3
-WHERE id = $1;
+SET last_fetched = NOW(), updated_at = NOW()
+WHERE id = $1
+RETURNING *;

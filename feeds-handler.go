@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -17,9 +16,7 @@ type createFeedParameters struct {
 }
 
 type markFeedFetchedParameters struct {
-	ID          uuid.UUID `json:"id"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	LastFetched time.Time `json:"last_fetched"`
+	ID uuid.UUID `json:"id"`
 }
 
 func (apiCfg *apiConfig) handleCreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
@@ -89,19 +86,12 @@ func (apiCfg *apiConfig) handleGetNextFeeds(w http.ResponseWriter, r *http.Reque
 	respondWithJSON(w, 200, feed)
 }
 
-func (apiCfg *apiConfig) markFeedFetched(w http.ResponseWriter, r *http.Request, params *markFeedFetchedParameters) {
-	dbErr := apiCfg.DB.MarkFeedFetched(r.Context(), database.MarkFeedFetchedParams{
-		ID:        params.ID,
-		UpdatedAt: time.Now().UTC(),
-		LastFetched: sql.NullTime{
-			Time:  time.Now().UTC(),
-			Valid: true,
-		},
-	})
+func (apiCfg *apiConfig) markFeedFetched(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
+	updatedFeed, dbErr := apiCfg.DB.MarkFeedFetched(r.Context(), id)
 	if dbErr != nil {
 		respondWithError(w, 400, fmt.Sprintf("Couldn't insert into Database: %v", dbErr))
 		return
 	}
 
-	respondWithJSON(w, 200, struct{}{})
+	respondWithJSON(w, 200, updatedFeed)
 }
