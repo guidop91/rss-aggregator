@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
@@ -24,9 +25,12 @@ func main() {
 	invariant(portString)
 
 	// Create api config struct
+	dbInstance := dbConnect()
 	apiCfg := apiConfig{
-		DB: dbConnect(),
+		DB: dbInstance,
 	}
+
+	go startScraping(dbInstance, 10, time.Minute)
 
 	// Create router
 	router := chi.NewRouter()
@@ -36,18 +40,7 @@ func main() {
 
 	// Create subrouter with route handlers
 	subRouter := chi.NewRouter()
-	subRouter.Get("/err", handleError)
-	subRouter.Get("/feed_follows", apiCfg.middlewareAuth(apiCfg.handleGetFeedFollows))
-	subRouter.Get("/feeds", apiCfg.handleGetFeeds)
-	subRouter.Get("/healthz", handleReadiness)
-	subRouter.Get("/users", apiCfg.middlewareAuth(apiCfg.handleGetUser))
-	subRouter.Get("/feeds_to_fetch", apiCfg.handleGetNextFeeds)
-
-	subRouter.Post("/feed_follows", apiCfg.middlewareAuth(apiCfg.handleCreateFollowFeed))
-	subRouter.Post("/feeds", apiCfg.middlewareAuth(apiCfg.handleCreateFeed))
-	subRouter.Post("/users", apiCfg.handleCreateUser)
-
-	subRouter.Delete("/feed_follows/{feed_id}", apiCfg.middlewareAuth(apiCfg.handleDeleteFeedFollow))
+	apiCfg.assignRouteHandlers(subRouter)
 
 	// Mount subrouter to main router
 	router.Mount("/v1", subRouter)
@@ -75,5 +68,3 @@ func getCorsOptions() func(http.Handler) http.Handler {
 		MaxAge:           300,
 	})
 }
-
-// 7:57:14

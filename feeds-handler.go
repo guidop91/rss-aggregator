@@ -15,10 +15,6 @@ type createFeedParameters struct {
 	URL  string `json:"url"`
 }
 
-type markFeedFetchedParameters struct {
-	ID uuid.UUID `json:"id"`
-}
-
 func (apiCfg *apiConfig) handleCreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 	params := &createFeedParameters{}
 
@@ -74,24 +70,4 @@ func (apiCfg *apiConfig) handleGetFeeds(w http.ResponseWriter, r *http.Request) 
 	}
 
 	respondWithJSON(w, 200, parsedFeedList)
-}
-
-func (apiCfg *apiConfig) handleGetNextFeeds(w http.ResponseWriter, r *http.Request) {
-	feed, dbErr := apiCfg.DB.GetNextFeedsToFetch(r.Context())
-	if dbErr != nil {
-		respondWithError(w, 400, fmt.Sprintf("Couldn't read from Database: %v", dbErr))
-		return
-	}
-
-	respondWithJSON(w, 200, feed)
-}
-
-func (apiCfg *apiConfig) markFeedFetched(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
-	updatedFeed, dbErr := apiCfg.DB.MarkFeedFetched(r.Context(), id)
-	if dbErr != nil {
-		respondWithError(w, 400, fmt.Sprintf("Couldn't insert into Database: %v", dbErr))
-		return
-	}
-
-	respondWithJSON(w, 200, updatedFeed)
 }
