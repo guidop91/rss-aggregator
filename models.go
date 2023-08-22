@@ -38,7 +38,7 @@ type Post struct {
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	Title       string    `json:"title"`
-	Description string    `json:"description"`
+	Description *string   `json:"description"`
 	PubDate     time.Time `json:"pubDate"`
 	Url         string    `json:"url"`
 	FeedID      uuid.UUID `json:"feed_id"`
@@ -78,5 +78,23 @@ func databaseFeedFollowToFeedFollow(dbFeedFollow database.FeedFollow) FeedFollow
 		UpdatedAt: dbFeedFollow.UpdatedAt,
 		UserID:    dbFeedFollow.UserID,
 		FeedID:    dbFeedFollow.FeedID,
+	}
+}
+
+func databasePostToPost(dbPost database.Post) Post {
+	var description *string
+	if dbPost.Description.Valid {
+		description = &dbPost.Description.String
+	}
+
+	return Post{
+		ID:          dbPost.ID,
+		CreatedAt:   dbPost.CreatedAt,
+		UpdatedAt:   dbPost.UpdatedAt,
+		Title:       dbPost.Title,
+		Description: description,
+		PubDate:     dbPost.Pubdate,
+		Url:         dbPost.Url,
+		FeedID:      dbPost.FeedID,
 	}
 }
